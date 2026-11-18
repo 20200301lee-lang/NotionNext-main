@@ -62,10 +62,22 @@ echo Configuration saved.
 
 :INSTALL_DEPS
 if exist "node_modules" goto START_APP
-
 echo.
 echo Installing packages. This may take several minutes...
+for /f "tokens=1 delims=." %%v in ('node -p "process.versions.node"') do set "NODE_MAJOR=%%v"
+if "%NODE_MAJOR%"=="26" goto INSTALL_IGNORE_ENGINES
+if "%NODE_MAJOR%"=="25" goto INSTALL_IGNORE_ENGINES
 call yarn install --frozen-lockfile
+if errorlevel 1 (
+  echo Package installation failed.
+  pause
+  exit /b 1
+)
+goto START_APP
+
+:INSTALL_IGNORE_ENGINES
+echo Node.js 25/26 detected. Ignoring the package engine check...
+call yarn install --frozen-lockfile --ignore-engines
 if errorlevel 1 (
   echo Package installation failed.
   pause
